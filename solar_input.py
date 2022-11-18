@@ -90,7 +90,7 @@ def write_space_objects_data_to_file(output_filename, space_objects):
 
     Параметры:
 
-    **output_filename** — имя входного файла
+    **output_filename** — имя входного файла u
     **space_objects** — список объектов планет и звёзд
     """
     with open(output_filename, 'w') as out_file:
