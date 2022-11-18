@@ -2,7 +2,7 @@
 # license: GPLv3
 
 from solar_objects import Star, Planet
-
+from solar_vis import DrawableObject
 
 def read_space_objects_data_from_file(input_filename):
     """Cчитывает данные о космических объектах из файла, создаёт сами объекты
@@ -14,10 +14,11 @@ def read_space_objects_data_from_file(input_filename):
     """
 
     objects = []
-    with open(input_filename) as input_file:
+    with open(input_filename, 'r') as input_file:
         for line in input_file:
             if len(line.strip()) == 0 or line[0] == '#':
                 continue  # пустые строки и строки-комментарии пропускаем
+
             object_type = line.split()[0].lower()
             if object_type == "star":
                 star = Star()
@@ -30,7 +31,8 @@ def read_space_objects_data_from_file(input_filename):
             else:
                 print("Unknown space object")
 
-    return objects
+    return [DrawableObject(obj) for obj in objects]
+
 
 def parse_star_parameters(line, star):
     """Считывает данные о звезде из строки.
@@ -80,7 +82,6 @@ def parse_planet_parameters(line, planet):
     planet.Vx = float(line[6])
     planet.Vy = float(line[7])
 
-
 def write_space_objects_data_to_file(output_filename, space_objects):
     """Сохраняет данные о космических объектах в файл.
     Строки должны иметь следующий формат:
@@ -100,7 +101,6 @@ def write_space_objects_data_to_file(output_filename, space_objects):
             elif obj.type == "planet":
                 out_file.write(" ".join(("Planet", str(obj.R), obj.color, str(obj.m), str(obj.x), str(obj.y), str(obj.Vx), str(obj.Vy))) + '\n')
 
-# FIXME: хорошо бы ещё сделать функцию, сохранающую статистику в заданный файл...
 
 if __name__ == "__main__":
     print("This module is not for direct call!")
