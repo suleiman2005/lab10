@@ -36,8 +36,11 @@ def execution(delta):
     """
     global model_time
     global displayed_time
-    recalculate_space_objects_positions([dr.obj for dr in space_objects], delta)
-    model_time += delta
+    if model_time <= 0 and delta < 0:
+        return
+    for i in range(300):
+        recalculate_space_objects_positions([dr.obj for dr in space_objects], delta / 300)
+        model_time += delta / 300
 
 
 def start_execution():
@@ -63,12 +66,14 @@ def open_file():
     функцию считывания параметров системы небесных тел из данного файла.
     Считанные объекты сохраняются в глобальный список space_objects
     """
+    global perform_execution
     global space_objects
     global browser
     global model_time
 
     model_time = 0.0
-    in_filename = "double_star.txt"
+    perform_execution = False
+    in_filename = "one_satellite.txt"
     space_objects = read_space_objects_data_from_file(in_filename)
     max_distance = max([max(abs(obj.obj.x), abs(obj.obj.y)) for obj in space_objects])
     calculate_scale_factor(max_distance)
@@ -89,7 +94,7 @@ def handle_events(events, menu):
             alive = False
 
 def slider_to_real(val):
-    return np.exp(5 + val)
+    return val * 3 * 10e4
 
 def slider_reaction(event):
     global time_scale
@@ -97,7 +102,7 @@ def slider_reaction(event):
 
 def init_ui(screen):
     global browser
-    slider = thorpy.SliderX(100, (-10, 10), "Simulation speed")
+    slider = thorpy.SliderX(150, (-10, 10), "Simulation speed")
     slider.user_func = slider_reaction
     button_stop = thorpy.make_button("Quit", func=stop_execution)
     button_pause = thorpy.make_button("Pause", func=pause_execution)
@@ -132,9 +137,6 @@ def init_ui(screen):
     return menu, box, timer
 
 def main():
-    """Главная функция главного модуля.
-    Создаёт объекты графического дизайна библиотеки tkinter: окно, холст, фрейм с кнопками, кнопки.
-    """
     
     global physical_time
     global displayed_time
@@ -154,16 +156,17 @@ def main():
     last_time = time.perf_counter()
     drawer = Drawer(screen)
     menu, box, timer = init_ui(screen)
-    perform_execution = True
+    perform_execution = False
 
     while alive:
         handle_events(pg.event.get(), menu)
         cur_time = time.perf_counter()
+        text = "%d seconds passed" % (int(model_time))
+        if model_time < 0:
+            text = "Warning! " + text
+        timer.set_text(text)
         if perform_execution:
             execution((cur_time - last_time) * time_scale)
-            text = "%d seconds passed" % (int(model_time))
-            timer.set_text(text)
-
         last_time = cur_time
         drawer.update(space_objects, box)
         time.sleep(1.0 / 60)
