@@ -101,6 +101,23 @@ def write_space_objects_data_to_file(output_filename, space_objects):
             elif obj.obj.type == "planet":
                 out_file.write(" ".join(("Planet", str(obj.obj.R), obj.obj.color, str(obj.obj.m), str(obj.obj.x), str(obj.obj.y), str(obj.obj.Vx), str(obj.obj.Vy))) + '\n')
 
+def graphic(output_filename, list_speed):
+    """Строит график скорость/время, на вход список скоростей за каждый кадр (индекс = номер кадра)."""
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    plt.ylabel("Скорость")
+    plt.xlabel("Номер кадра")
+
+    c = list_speed
+    x = (np.linspace(1,len(c),len(c)))
+    y = c
+
+    plt.plot(x,y)
+    plt.show()
+
+# def speed_write(space_object):
+
 
 if __name__ == "__main__":
     print("This module is not for direct call!")
