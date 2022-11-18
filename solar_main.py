@@ -21,7 +21,7 @@ model_time = 0
 """Физическое время от начала расчёта.
 Тип: float"""
 
-time_scale = 1000.0
+time_scale = 10000.0
 """Шаг по времени при моделировании.
 Тип: float"""
 
@@ -68,10 +68,18 @@ def open_file():
     global model_time
 
     model_time = 0.0
-    in_filename = "solar_system.txt"
+    in_filename = "double_star.txt"
     space_objects = read_space_objects_data_from_file(in_filename)
     max_distance = max([max(abs(obj.obj.x), abs(obj.obj.y)) for obj in space_objects])
     calculate_scale_factor(max_distance)
+
+def write_file():
+    global space_objects
+    global browser
+    global model_time
+
+    out_filename = "writing.txt"
+    write_space_objects_data_to_file(out_filename, space_objects)
 
 def handle_events(events, menu):
     global alive
@@ -97,6 +105,7 @@ def init_ui(screen):
     timer = thorpy.OneLineText("Seconds passed")
 
     button_load = thorpy.make_button(text="Load a file", func=open_file)
+    button_write = thorpy.make_button(text="Write a file", func=write_file)
 
     box = thorpy.Box(elements=[
         slider,
@@ -104,6 +113,7 @@ def init_ui(screen):
         button_stop, 
         button_play, 
         button_load,
+        button_write,
         timer])
     reaction1 = thorpy.Reaction(reacts_to=thorpy.constants.THORPY_EVENT,
                                 reac_func=slider_reaction,
@@ -140,9 +150,7 @@ def main():
 
     pg.init()
     
-    width = 1000
-    height = 900
-    screen = pg.display.set_mode((width, height))
+    screen = pg.display.set_mode((window_width, window_height))
     last_time = time.perf_counter()
     drawer = Drawer(screen)
     menu, box, timer = init_ui(screen)
