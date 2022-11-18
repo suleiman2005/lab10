@@ -90,16 +90,16 @@ def write_space_objects_data_to_file(output_filename, space_objects):
 
     Параметры:
 
-    **output_filename** — имя входного файла u
+    **output_filename** — имя входного файла
     **space_objects** — список объектов планет и звёзд
     """
     with open(output_filename, 'w') as out_file:
         print(output_filename)
         for obj in space_objects:
-            if obj.type == "star":
-                out_file.write(" ".join(("Star", str(obj.R), obj.color, str(obj.m), str(obj.x), str(obj.y), str(obj.Vx), str(obj.Vy))) + '\n')
-            elif obj.type == "planet":
-                out_file.write(" ".join(("Planet", str(obj.R), obj.color, str(obj.m), str(obj.x), str(obj.y), str(obj.Vx), str(obj.Vy))) + '\n')
+            if obj.obj.type == "star":
+                out_file.write(" ".join(("Star", str(obj.obj.R), obj.obj.color, str(obj.obj.m), str(obj.obj.x), str(obj.obj.y), str(obj.obj.Vx), str(obj.obj.Vy))) + '\n')
+            elif obj.obj.type == "planet":
+                out_file.write(" ".join(("Planet", str(obj.obj.R), obj.obj.color, str(obj.obj.m), str(obj.obj.x), str(obj.obj.y), str(obj.obj.Vx), str(obj.obj.Vy))) + '\n')
 
 
 if __name__ == "__main__":
