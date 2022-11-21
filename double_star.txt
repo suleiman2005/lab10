@@ -1,3 +1,5 @@
 # Двойная звезда
 Star 30 white 1E30 1E10 0 0 40E3
 Star 30 cyan 1E30 -1E10 0 0 -40E3
+Planet 5 red 1E29 5E9 0 0 10E3
+Planet 5 red 1E29 -5E9 0 0 -10E3

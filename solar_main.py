@@ -1,7 +1,7 @@
 # coding: utf-8
 # license: GPLv3
 
-import pygame as pg
+import pygame
 from solar_vis import *
 from solar_model import *
 from solar_input import *
@@ -11,6 +11,8 @@ import time
 import numpy as np
 
 timer = None
+back_flag = None
+in_filename = "one_satellite.txt"
 
 alive = True
 
@@ -28,6 +30,10 @@ time_scale = 10000.0
 space_objects = []
 """Список космических объектов."""
 
+object_list = ObjectList()
+
+FPS = 120
+
 def execution(delta):
     """Функция исполнения -- выполняется циклически, вызывая обработку всех небесных тел,
     а также обновляя их положение на экране.
@@ -36,11 +42,9 @@ def execution(delta):
     """
     global model_time
     global displayed_time
-    if model_time <= 0 and delta < 0:
-        return
-    for i in range(300):
-        recalculate_space_objects_positions([dr.obj for dr in space_objects], delta / 300)
-        model_time += delta / 300
+    for i in range(1000):
+        recalculate_space_objects_positions([dr.obj for dr in space_objects], delta / 1000)
+        model_time += delta / 1000
 
 
 def start_execution():
@@ -70,11 +74,14 @@ def open_file():
     global space_objects
     global browser
     global model_time
+    global in_filename
+    global object_list
 
     model_time = 0.0
     perform_execution = False
-    in_filename = "one_satellite.txt"
     space_objects = read_space_objects_data_from_file(in_filename)
+    if in_filename == "one_satellite.txt":
+        object_list = ObjectList(space_objects[1].obj.type)
     max_distance = max([max(abs(obj.obj.x), abs(obj.obj.y)) for obj in space_objects])
     calculate_scale_factor(max_distance)
 
@@ -90,11 +97,11 @@ def handle_events(events, menu):
     global alive
     for event in events:
         menu.react(event)
-        if event.type == pg.QUIT:
+        if event.type == pygame.QUIT:
             alive = False
 
 def slider_to_real(val):
-    return val * 3 * 10e4
+    return 10e5 * val
 
 def slider_reaction(event):
     global time_scale
@@ -102,76 +109,85 @@ def slider_reaction(event):
 
 def init_ui(screen):
     global browser
-    slider = thorpy.SliderX(150, (-10, 10), "Simulation speed")
+    slider = thorpy.SliderX(150, (0, 10), "Speed")
     slider.user_func = slider_reaction
-    button_stop = thorpy.make_button("Quit", func=stop_execution)
-    button_pause = thorpy.make_button("Pause", func=pause_execution)
     button_play = thorpy.make_button("Play", func=start_execution)
-    timer = thorpy.OneLineText("Seconds passed")
-
+    button_pause = thorpy.make_button("Pause", func=pause_execution)
+    timer = thorpy.make_text("n seconds passed")
+    back_flag = thorpy.make_text("You're trying to go back in time.")
+    empty_space = thorpy.make_text("\n\n")
     button_load = thorpy.make_button(text="Load a file", func=open_file)
     button_write = thorpy.make_button(text="Write a file", func=write_file)
 
-    box = thorpy.Box(elements=[
+    box_slider = thorpy.Box(elements=[
         slider,
-        button_pause, 
-        button_stop, 
-        button_play, 
-        button_load,
-        button_write,
-        timer])
-    reaction1 = thorpy.Reaction(reacts_to=thorpy.constants.THORPY_EVENT,
+        empty_space,
+        timer,
+        back_flag])
+    reaction_slider = thorpy.Reaction(reacts_to=thorpy.constants.THORPY_EVENT,
                                 reac_func=slider_reaction,
                                 event_args={"id":thorpy.constants.EVENT_SLIDE},
                                 params={},
                                 reac_name="slider reaction")
-    box.add_reaction(reaction1)
+    box_slider.add_reaction(reaction_slider)
+    box_control = thorpy.Box(elements=[
+        button_play,
+        button_pause])
+    box_file = thorpy.Box(elements=[
+        button_load,
+        button_write])
+    box = thorpy.Box(elements=[
+        box_slider,
+        box_control,
+        box_file])
+    box_slider.set_topleft((0, 0))
+    box_control.set_topleft((40, 30))
+    box_file.set_topleft((120, 30))
     
     menu = thorpy.Menu(box)
     for element in menu.get_population():
         element.surface = screen
-
-    box.set_topleft((0,0))
-    box.blit()
-    box.update()
-    return menu, box, timer
+    return menu, box_slider, box_control, box_file, timer, back_flag
 
 def main():
-    
-    global physical_time
-    global displayed_time
-    global time_step
-    global time_speed
-    global space
-    global start_button
     global perform_execution
     global timer
+    global back_flag
+    global in_filename
+    global model_time
 
     print('Modelling started!')
     physical_time = 0
 
-    pg.init()
+    pygame.init()
     
-    screen = pg.display.set_mode((window_width, window_height))
-    last_time = time.perf_counter()
+    screen = pygame.display.set_mode((window_width, window_height))
     drawer = Drawer(screen)
-    menu, box, timer = init_ui(screen)
+    menu, box_slider, box_control, box_file, timer, back_flag = init_ui(screen)
     perform_execution = False
-
+    clock = pygame.time.Clock()
+    cur_time = time.perf_counter()
+    
     while alive:
-        handle_events(pg.event.get(), menu)
+        clock.tick(FPS)
+        handle_events(pygame.event.get(), menu)
+        last_time = cur_time
         cur_time = time.perf_counter()
-        text = "%d seconds passed" % (int(model_time))
-        if model_time < 0:
-            text = "Warning! " + text
-        timer.set_text(text)
+        timer_text = "%d seconds passed" % (int(model_time))
+        back_flag_text = ""
+        timer.set_text(timer_text)
+        back_flag.set_text(back_flag_text)
         if perform_execution:
             execution((cur_time - last_time) * time_scale)
-        last_time = cur_time
-        drawer.update(space_objects, box)
-        time.sleep(1.0 / 60)
+        if in_filename == "one_satellite.txt" and perform_execution:
+            distance = np.sqrt((space_objects[0].obj.x-space_objects[1].obj.x)**2 + (space_objects[0].obj.y-space_objects[1].obj.y)**2)
+            speed = np.sqrt((space_objects[1].obj.Vx)**2 + (space_objects[1].obj.Vy)**2)
+            a = 1 / (2/distance - speed**2/(gravitational_constant*space_objects[0].obj.m))
+            object_list.update_list(model_time, distance, speed, a)
+        drawer.update(space_objects, box_slider, box_control, box_file)
 
     print('Modelling finished!')
+    build_graphs("1.txt", object_list)
 
 if __name__ == "__main__":
     main()

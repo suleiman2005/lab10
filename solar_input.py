@@ -1,8 +1,8 @@
 # coding: utf-8
 # license: GPLv3
-
-from solar_objects import Star, Planet
-from solar_vis import DrawableObject
+import numpy as np
+import matplotlib.pyplot as plt
+from solar_objects import Star, Planet, DrawableObject
 
 def read_space_objects_data_from_file(input_filename):
     """Cчитывает данные о космических объектах из файла, создаёт сами объекты
@@ -94,30 +94,47 @@ def write_space_objects_data_to_file(output_filename, space_objects):
     **space_objects** — список объектов планет и звёзд
     """
     with open(output_filename, 'w') as out_file:
-        print(output_filename)
         for obj in space_objects:
             if obj.obj.type == "star":
                 out_file.write(" ".join(("Star", str(obj.obj.R), obj.obj.color, str(obj.obj.m), str(obj.obj.x), str(obj.obj.y), str(obj.obj.Vx), str(obj.obj.Vy))) + '\n')
             elif obj.obj.type == "planet":
                 out_file.write(" ".join(("Planet", str(obj.obj.R), obj.obj.color, str(obj.obj.m), str(obj.obj.x), str(obj.obj.y), str(obj.obj.Vx), str(obj.obj.Vy))) + '\n')
 
-def graphic(output_filename, list_speed):
-    """Строит график скорость/время, на вход список скоростей за каждый кадр (индекс = номер кадра)."""
-    import numpy as np
-    import matplotlib.pyplot as plt
-
+def build_graphs(output_filename, object_list):
+    """Строит график <величина>/время, на вход список пар время-<величина>."""
+    
+    plt.figure(figsize=(20, 10))
+    
+    time = [el[0] for el in object_list.list]
+    distance = [el[1] for el in object_list.list]
+    speed = [el[2] for el in object_list.list]
+    a = [el[3] for el in object_list.list]
+    
+    plt.subplot(221)
+    plt.xlabel("Время")
     plt.ylabel("Скорость")
-    plt.xlabel("Номер кадра")
-
-    c = list_speed
-    x = (np.linspace(1,len(c),len(c)))
-    y = c
-
-    plt.plot(x,y)
+    plt.xlim(0, 1.2*max(time))
+    plt.ylim(0, 1.2*max(speed))
+    plt.plot(time, speed)
+    plt.subplot(222)
+    plt.xlabel("Время")
+    plt.ylabel("Расстояние")
+    plt.xlim(0, 1.2*max(time))
+    plt.ylim(0, 1.2*max(distance))
+    plt.plot(time, distance)
+    plt.subplot(223)
+    plt.xlabel("Расстояние")
+    plt.ylabel("Скорость")
+    plt.xlim(0, 1.2*max(distance))
+    plt.ylim(0, 1.2*max(speed))
+    plt.plot(distance, speed)
+    plt.subplot(224)
+    plt.xlabel("Время")
+    plt.ylabel("Большая полуось")
+    plt.xlim(0, 1.2*max(time))
+    plt.ylim(1.2*min(0, min(a)), 1.2*max(a))
+    plt.plot(time, a)
     plt.show()
-
-# def speed_write(space_object):
-
 
 if __name__ == "__main__":
     print("This module is not for direct call!")

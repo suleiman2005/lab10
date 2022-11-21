@@ -1,6 +1,7 @@
 # coding: utf-8
 # license: GPLv3
-
+import pygame
+from solar_vis import *
 
 class Star:
     """Тип данных, описывающий звезду.
@@ -74,3 +75,38 @@ class Planet:
 
     color = "green"
     """Цвет планеты"""
+
+class Drawer:
+    def __init__(self, screen):
+        self.screen = screen
+
+
+    def update(self, figures, box_slider, box_control, box_file):
+        self.screen.fill((0, 0, 0))
+        for figure in figures:
+            figure.draw(self.screen)
+        
+        box_slider.blit()
+        box_control.blit()
+        box_file.blit()
+        box_slider.update()
+        box_control.update()
+        box_file.update()
+        pygame.display.update()
+
+
+class DrawableObject:
+    def __init__(self, obj):
+        self.obj = obj
+
+    def draw(self, surface):
+        pygame.draw.circle(surface, self.obj.color, (scale_x(self.obj.x), scale_y(self.obj.y)), self.obj.R)
+
+class ObjectList:
+    def __init__(self, name=None):
+        self.name = name
+        self.list = []
+	
+    def update_list(self, time, distance, speed, a):
+        self.list.append((time, distance, speed, a))
+
