@@ -176,11 +176,11 @@ def main():
         timer.set_text(timer_text)
         if perform_execution:
             execution((cur_time - last_time) * time_scale)
-        if in_filename == "one_satellite.txt" and perform_execution:
-            distance = np.sqrt((space_objects[0].obj.x-space_objects[1].obj.x)**2 + (space_objects[0].obj.y-space_objects[1].obj.y)**2)
-            speed = np.sqrt((space_objects[1].obj.Vx)**2 + (space_objects[1].obj.Vy)**2)
-            a = 1 / (2/distance - speed**2/(gravitational_constant*space_objects[0].obj.m))
-            object_list.update_list(model_time, distance, speed, a)
+            if in_filename == "one_satellite.txt" and len(space_objects) > 0:
+                distance = np.sqrt((space_objects[0].obj.x-space_objects[1].obj.x)**2 + (space_objects[0].obj.y-space_objects[1].obj.y)**2)
+                speed = np.sqrt((space_objects[1].obj.Vx)**2 + (space_objects[1].obj.Vy)**2)
+                a = 1 / (2/distance - speed**2/(gravitational_constant*space_objects[0].obj.m))
+                object_list.update_list(model_time, distance, speed, a)
         drawer.update(space_objects, box_slider, box_control, box_file)
 
     print('Modelling finished!')
