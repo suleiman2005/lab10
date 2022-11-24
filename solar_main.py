@@ -58,13 +58,6 @@ def pause_execution():
     global perform_execution
     perform_execution = False
 
-def stop_execution():
-    """Обработчик события нажатия на кнопку Start.
-    Останавливает циклическое исполнение функции execution.
-    """
-    global alive
-    alive = False
-
 def open_file():
     """Открывает диалоговое окно выбора имени файла и вызывает
     функцию считывания параметров системы небесных тел из данного файла.
@@ -89,8 +82,9 @@ def write_file():
     global space_objects
     global browser
     global model_time
-
-    out_filename = "writing.txt"
+    
+    pause_execution()
+    out_filename = "stats.txt"
     write_space_objects_data_to_file(out_filename, space_objects)
 
 def handle_events(events, menu):
@@ -107,23 +101,27 @@ def slider_reaction(event):
     global time_scale
     time_scale = slider_to_real(event.el.get_value())
 
+def start_building_graphics():
+	pause_execution()
+	build_graphics(object_list)
+
 def init_ui(screen):
     global browser
     slider = thorpy.SliderX(150, (0, 10), "Speed")
     slider.user_func = slider_reaction
     button_play = thorpy.make_button("Play", func=start_execution)
     button_pause = thorpy.make_button("Pause", func=pause_execution)
-    timer = thorpy.make_text("n seconds passed")
-    back_flag = thorpy.make_text("You're trying to go back in time.")
+    timer = thorpy.make_text("nnnnnnn seconds passed")
     empty_space = thorpy.make_text("\n\n")
     button_load = thorpy.make_button(text="Load a file", func=open_file)
     button_write = thorpy.make_button(text="Write a file", func=write_file)
+    button_graphics = thorpy.make_button(text="Build graphics", func=start_building_graphics)
 
     box_slider = thorpy.Box(elements=[
         slider,
         empty_space,
-        timer,
-        back_flag])
+        button_graphics,
+        timer])
     reaction_slider = thorpy.Reaction(reacts_to=thorpy.constants.THORPY_EVENT,
                                 reac_func=slider_reaction,
                                 event_args={"id":thorpy.constants.EVENT_SLIDE},
@@ -147,7 +145,7 @@ def init_ui(screen):
     menu = thorpy.Menu(box)
     for element in menu.get_population():
         element.surface = screen
-    return menu, box_slider, box_control, box_file, timer, back_flag
+    return menu, box_slider, box_control, box_file, timer
 
 def main():
     global perform_execution
@@ -155,6 +153,7 @@ def main():
     global back_flag
     global in_filename
     global model_time
+    global object_list
 
     print('Modelling started!')
     physical_time = 0
@@ -163,7 +162,7 @@ def main():
     
     screen = pygame.display.set_mode((window_width, window_height))
     drawer = Drawer(screen)
-    menu, box_slider, box_control, box_file, timer, back_flag = init_ui(screen)
+    menu, box_slider, box_control, box_file, timer = init_ui(screen)
     perform_execution = False
     clock = pygame.time.Clock()
     cur_time = time.perf_counter()
@@ -174,9 +173,7 @@ def main():
         last_time = cur_time
         cur_time = time.perf_counter()
         timer_text = "%d seconds passed" % (int(model_time))
-        back_flag_text = ""
         timer.set_text(timer_text)
-        back_flag.set_text(back_flag_text)
         if perform_execution:
             execution((cur_time - last_time) * time_scale)
         if in_filename == "one_satellite.txt" and perform_execution:
@@ -187,7 +184,6 @@ def main():
         drawer.update(space_objects, box_slider, box_control, box_file)
 
     print('Modelling finished!')
-    build_graphs("1.txt", object_list)
 
 if __name__ == "__main__":
     main()

@@ -100,8 +100,13 @@ def write_space_objects_data_to_file(output_filename, space_objects):
             elif obj.obj.type == "planet":
                 out_file.write(" ".join(("Planet", str(obj.obj.R), obj.obj.color, str(obj.obj.m), str(obj.obj.x), str(obj.obj.y), str(obj.obj.Vx), str(obj.obj.Vy))) + '\n')
 
-def build_graphs(output_filename, object_list):
+def build_graphics(object_list):
     """Строит график <величина>/время, на вход список пар время-<величина>."""
+    out_filename = "graphics.jpg"
+    
+    if len(object_list.list) == 0:
+        print("No measurements")
+        return
     
     plt.figure(figsize=(20, 10))
     
