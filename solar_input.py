@@ -139,7 +139,7 @@ def build_graphics(object_list):
     plt.xlim(0, 1.2*max(time))
     plt.ylim(1.2*min(0, min(a)), 1.2*max(a))
     plt.plot(time, a)
-    plt.show()
+    plt.savefig('graphics.jpg')
 
 if __name__ == "__main__":
     print("This module is not for direct call!")
